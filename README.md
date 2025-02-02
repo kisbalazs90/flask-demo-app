@@ -1,134 +1,114 @@
-# Book API Application
 
-This project is a simple Flask-based REST API for managing books using an SQLite database. It includes CRUD (Create, Read, Update, Delete) operations for books. The application uses Flask, Flask-SQLAlchemy, Flasgger for Swagger documentation, and environment variables loaded via `dotenv`.
+# Book API with JWT Authentication
+
+This project implements a basic Book Management API using Flask. The API supports JWT authentication to secure certain endpoints. The project uses Flasgger to generate Swagger UI for the API documentation.
+
+## Features
+
+- **Authentication**: JWT-based authentication for accessing secure endpoints.
+- **CRUD Operations for Books**: You can create, read, update, and delete books via the API.
+- **Swagger UI**: Auto-generated API documentation with Flasgger for easy interaction with the API.
 
 ## Requirements
 
-Before running the application, ensure you have the following dependencies installed:
-
-- Python 3.x
+- Python 3.6+
 - Flask
 - Flask-SQLAlchemy
+- Flask-JWT-Extended
 - Flasgger
-- python-dotenv
+- dotenv (for environment variables)
 
-To install the required packages, use the following command:
+## Installation
 
-```bash
-pip install -r requirements.txt
-```
+1. Clone this repository:
 
-## Setup
+   ```bash
+   git clone https://your-repo-url.git
+   cd your-repo-folder
+   ```
 
-1. Clone this repository to your local machine.
-2. Create a `.env` file in the root directory of the project to store your environment variables. Specifically, define the `DATABASE_URI` for the connection to your SQLite database.
+2. Create and activate a virtual environment:
 
-Example `.env` file:
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows, use .venv\Scripts\activate
+   ```
 
-```
-DATABASE_URI=sqlite:///db.sqlite
-```
+3. Install the required dependencies:
 
-3. The SQLite database file will be automatically created when you first run the application.
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-## File Overview
+4. Create a `.env` file in the root of the project and set the following values:
 
-- **app.py**: The main Flask application with routes for managing books.
-- **models/book.py**: Contains the `Book` model definition for SQLAlchemy.
-- **resources/book/book_service.py**: Includes the logic for handling the various CRUD operations for books (e.g., `book_find_all`, `book_create`).
-- **apidocs/swagger.py**: Defines Swagger annotations for API documentation.
+   ```env
+   FLASK_ENV=development
+   DATABASE_URI=sqlite:///db.sqlite
+   USER_NAME=admin
+   USER_PASSWORD=admin
+   JWT_SECRET=your_generated_jwt_secret_key
+   ```
 
-## API Endpoints
+## Usage
 
-### 1. **GET /books**
+1. **Start the application**:
 
-- **Description**: Retrieve a list of all books.
-- **Response**: JSON array of all books in the database.
-- **Swagger Documentation**: Defined in `GET_BOOKS_ANNOTATION`.
+   ```bash
+   python app.py
+   ```
 
-### 2. **POST /books**
+   The app will start running on `http://127.0.0.1:5000/`.
 
-- **Description**: Add a new book to the collection.
-- **Request Body**: JSON object with the book's details (e.g., title, author, etc.).
-- **Response**: JSON object with the newly created book.
-- **Swagger Documentation**: Defined in `POST_BOOK_ANNOTATION`.
+2. **Swagger UI**:
 
-### 3. **GET /books/<book_id>**
+   The Swagger UI documentation can be accessed at `http://127.0.0.1:5000/apidocs/`.
 
-- **Description**: Retrieve a specific book by its ID.
-- **Response**: JSON object with the book's details.
-- **Swagger Documentation**: Defined in `GET_BOOKS_BY_ID_ANNOTATION`.
+3. **Login and Get JWT Token**:
 
-### 4. **PUT /books/<book_id>**
+   To access secure endpoints, you must first log in and get the JWT token:
 
-- **Description**: Update an existing book's details.
-- **Request Body**: JSON object with the updated book information.
-- **Response**: JSON object with the updated book.
-- **Swagger Documentation**: Defined in `UPDATE_BOOK_ANNOTATION`.
+   - **Endpoint**: `POST /login`
+   - **Body**:
+     ```json
+     {
+       "username": "admin",
+       "password": "admin"
+     }
+     ```
 
-### 5. **DELETE /books/<book_id>**
+   - On successful login, you will receive a JWT token:
 
-- **Description**: Delete a book by its ID.
-- **Response**: Confirmation message or error message.
-- **Swagger Documentation**: Defined in `DELETE_BOOK_ANNOTATION`.
+     ```json
+     {
+       "access_token": "your-jwt-token-here"
+     }
+     ```
 
-## Running the Application
+4. **Use JWT Token to Access Secured Endpoints**:
 
-1. Ensure the `.env` file is configured with the correct database URI.
-2. Run the application using the following command:
+   - **Add `Authorization: Bearer <your-jwt-token-here>` header** to make requests to the protected endpoints like `/books`.
 
-```bash
-python app.py
-```
+## Endpoints
 
-The app will start running on `http://127.0.0.1:5000/` by default.
+- **POST /login**: Authenticates the user and returns a JWT token.
+- **GET /books**: Retrieves all books (requires JWT authentication).
+- **GET /books/{book_id}**: Retrieves a book by ID (requires JWT authentication).
+- **POST /books**: Adds a new book (requires JWT authentication).
+- **PUT /books/{book_id}**: Updates a book by ID (requires JWT authentication).
+- **DELETE /books/{book_id}**: Deletes a book by ID (requires JWT authentication).
 
-## Swagger Documentation
+## Example cURL Requests
 
-The application is integrated with Flasgger to automatically generate Swagger API documentation. To view the documentation, navigate to:
+- **Login Request**:
 
-```
-http://127.0.0.1:5000/apidocs
-```
+  ```bash
+  curl -X POST http://127.0.0.1:5000/login -H "Content-Type: application/json" -d '{"username": "admin", "password": "admin"}'
+  ```
 
-This will display the interactive API documentation where you can test the endpoints directly.
+- **Get All Books** (Authenticated):
 
-## Example API Calls
+  ```bash
+  curl -X GET http://127.0.0.1:5000/books -H "Authorization: Bearer <your-jwt-token-here>"
+  ```
 
-Here are a few examples of how you can interact with the API:
-
-### Create a new book
-
-```bash
-curl -X POST http://127.0.0.1:5000/books -H "Content-Type: application/json" -d '{"title": "Book Title", "author": "Author Name"}'
-```
-
-### Get all books
-
-```bash
-curl -X GET http://127.0.0.1:5000/books
-```
-
-### Get a book by ID
-
-```bash
-curl -X GET http://127.0.0.1:5000/books/1
-```
-
-### Update a book
-
-```bash
-curl -X PUT http://127.0.0.1:5000/books/1 -H "Content-Type: application/json" -d '{"title": "Updated Title", "author": "Updated Author"}'
-```
-
-### Delete a book
-
-```bash
-curl -X DELETE http://127.0.0.1:5000/books/1
-```
-
-## Environment Variables
-
-The app loads configuration from environment variables using `python-dotenv`. Below is the required environment variable:
-
-- `DATABASE_URI`: URI for your SQLite database. Example: `sqlite:///books.db`.
